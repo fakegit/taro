@@ -1,4 +1,5 @@
-import { RecursiveTemplate, isArray, Shortcuts } from '@tarojs/shared'
+import { isArray, Shortcuts } from '@tarojs/shared'
+import { RecursiveTemplate } from '@tarojs/shared/dist/template'
 
 const swanSpecialAttrs = {
   'scroll-view': ['scrollTop', 'scrollLeft', 'scrollIntoView'],
@@ -43,6 +44,29 @@ export class Template extends RecursiveTemplate {
       return `<block>{{ i.${Shortcuts.Childnodes}[index].${Shortcuts.Text} }}</block>`
     }
 
+    if (nodeName === 'picker-view') {
+      return `<picker-view-column name="{{ item.name }}" style="{{ item.st }}" class="{{ item.cl }}" bindtap="eh"  id="{{item.uid}}">
+        <block s-for="{{item.cn}}" s-key="uid">
+          ${child}
+        </block>
+      </picker-view-column>`
+    }
+
+    if (nodeName === 'video') {
+      const adComponent = this.miniComponents.ad
+
+      const attributesStr = Object.keys(adComponent)
+        .map(k => `${k}="${k.startsWith('bind') || k.startsWith('on') || k.startsWith('catch') ? adComponent[k] : `{{${adComponent[k].replace('i.', 'item.')}}}`}" `)
+        .join('')
+      return `<ad s-if={{item.nn==='ad'}} ${attributesStr} id="{{item.uid}}"></ad>
+          <template s-if={{item.nn!='ad'}} is="{{xs.e(0)}}" data="{{{ i:item }}}" />`
+    }
+
     return child
+  }
+
+  modifyTemplateResult = (res: string, nodeName: string) => {
+    if (nodeName === 'picker-view-column') return ''
+    return res
   }
 }
